@@ -52,9 +52,9 @@ resource "aws_instance" "web" {
       private_key = file(var.pvt_key)
     }
     }
- provisioner "local-exec" {
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${self.public_ip},' --private-key ${var.pvt_key} -e 'pub_key=${var.pub_key}' ~/ansible/allDistros.yml"
- }
+ #provisioner "local-exec" {
+  #  command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${self.public_ip},' --private-key ${var.pvt_key} -e 'pub_key=${var.pub_key}' ~/ansible/allDistros.yml"
+ #}
   subnet_id = "${aws_subnet.default.id}"
   tags = {
     Name = "${each.value.instance_name}"
