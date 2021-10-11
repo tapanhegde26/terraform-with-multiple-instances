@@ -16,9 +16,9 @@ locals {
       for i in range(1, srv.no_of_instances+1) : {
         instance_name = "${srv.application_name}-${i}"
         instance_type = srv.instance_type
-        subnet_id   = srv.subnet_id
+        #subnet_id   = srv.subnet_id
         ami = srv.ami
-        security_groups = srv.vpc_security_group_ids
+        #security_groups = srv.vpc_security_group_ids
       }
     ]
   ]
@@ -35,7 +35,7 @@ resource "aws_instance" "web" {
   
   ami           = each.value.ami
   instance_type = each.value.instance_type
-  vpc_security_group_ids = each.value.security_groups
+  vpc_security_group_ids = ["${aws_security_group.default.id}"]
   key_name = "${var.key_name}"
 
 # force Terraform to wait until a connection can be made, so that Ansible doesn't fail when trying to provision
@@ -52,7 +52,10 @@ resource "aws_instance" "web" {
       private_key = file(var.pvt_key)
     }
     }
-  subnet_id = each.value.subnet_id
+ provisioner "local-exec" {
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${self.public_ip},' --private-key ${var.pvt_key} -e 'pub_key=${var.pub_key}' ~/cobalt-try-out/InfraAsCodeWithTerraformAndAnsible/ansible/allDistros.yml"
+ }
+  subnet_id = "${aws_subnet.default.id}"
   tags = {
     Name = "${each.value.instance_name}"
   }
@@ -62,3 +65,4 @@ output "instances" {
   value       = "${aws_instance.web}"
   description = "All Machine details"
 }
+
